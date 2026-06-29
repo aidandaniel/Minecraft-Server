@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  mc:
+    image: itzg/minecraft-server:latest
+    pull_policy: daily
+    container_name: minecraft-server
+    ports:
+      - 25565:25565
+    environment:
+      EULA: "TRUE"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    volumes:
+      - mc-data:/data
+    networks:
+      - monitoring
+
   prometheus:
     image: prom/prometheus:v2.52.0
     container_name: prometheus
@@ -8,9 +24,15 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     networks:
       - monitoring
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   grafana:
     image: grafana/grafana:10.2.2
@@ -18,12 +40,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=your_password
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - grafana-storage:/var/lib/grafana
     networks:
       - monitoring
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.2
@@ -40,9 +67,10 @@ services:
     restart: unless-stopped
 
 volumes:
+  mc-data:
   grafana-storage:
-
+  prometheus-data:
 
 networks:
   monitoring:
-    external: true
+    driver: bridge
