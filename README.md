@@ -32,6 +32,7 @@ The monitoring stack tracks CPU, memory, network, and disk I/O metrics for the M
    cp .env.example .env
    # Edit .env and set a secure Grafana admin password
    nano .env
+   # add players to white list in env
    ```
 
 3. **Start all services:**
