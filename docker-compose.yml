@@ -7,6 +7,12 @@ services:
       - 25565:25565
     environment:
       EULA: "TRUE"
+      OPS: ${minecraftUser}
+      EXISTING_OPS_FILE: MERGE
+      ENABLE_WHITELIST: "TRUE"
+      ENFORCE_WHITELIST: "TRUE"
+      WHITELIST: ${WHITELIST:-${minecraftUser}}
+      EXISTING_WHITELIST_FILE: SYNCHRONIZE
     tty: true
     stdin_open: true
     restart: unless-stopped
